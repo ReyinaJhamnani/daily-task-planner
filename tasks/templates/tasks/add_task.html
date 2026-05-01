@@ -1,0 +1,207 @@
+{% extends 'tasks/base.html' %}
+{% block title %}Add Task — Planr{% endblock %}
+{% block page_title %}Add Task{% endblock %}
+{% block page_sub %}Create a new task{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 32px;
+        max-width: 620px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .form-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--accent), var(--cyan));
+    }
+
+    .priority-selector {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+    }
+
+    .priority-option {
+        position: relative;
+    }
+
+    .priority-option input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+        width: 0; height: 0;
+    }
+
+    .priority-label {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        padding: 14px 10px;
+        background: var(--surface2);
+        border: 2px solid var(--border);
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text2);
+    }
+
+    .priority-label i { font-size: 18px; }
+
+    .priority-label:hover { border-color: var(--accent); color: var(--text); }
+
+    .priority-option input:checked + .priority-label {
+        border-color: var(--accent);
+        background: rgba(124,106,255,0.1);
+        color: var(--text);
+    }
+
+    .priority-option.high input:checked + .priority-label { border-color: var(--red); background: rgba(248,113,113,0.08); color: var(--red); }
+    .priority-option.medium input:checked + .priority-label { border-color: var(--accent); background: rgba(124,106,255,0.08); color: var(--accent2); }
+    .priority-option.low input:checked + .priority-label { border-color: var(--green); background: rgba(74,222,128,0.08); color: var(--green); }
+
+    .form-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 28px;
+        align-items: center;
+    }
+
+    .char-count {
+        font-size: 11px;
+        color: var(--text3);
+        text-align: right;
+        margin-top: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="form-card animate-in">
+    <div style="margin-bottom:28px">
+        <h2 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;margin-bottom:4px">Create New Task</h2>
+        <p style="font-size:13px;color:var(--text3)">Fill in the details below to add a task to your planner.</p>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+        <div class="msg {{ message.tags }}" style="margin-bottom:20px">
+            <i class="fas fa-circle-exclamation"></i> {{ message }}
+        </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post" action="{% url 'add_task' %}">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label class="form-label" for="title">
+                <i class="fas fa-pen-to-square" style="margin-right:5px"></i>Task Title *
+            </label>
+            <input
+                type="text"
+                id="title"
+                name="title"
+                class="form-input"
+                placeholder="e.g. Complete the project report"
+                required
+                maxlength="200"
+                value="{{ form_data.title|default:'' }}"
+                oninput="updateChar(this, 'title-count', 200)"
+            >
+            <div class="char-count"><span id="title-count">0</span>/200</div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="description">
+                <i class="fas fa-align-left" style="margin-right:5px"></i>Description <span style="color:var(--text3);text-transform:none;font-weight:400">(optional)</span>
+            </label>
+            <textarea
+                id="description"
+                name="description"
+                class="form-textarea"
+                placeholder="Add any notes or details about this task..."
+                maxlength="1000"
+                oninput="updateChar(this, 'desc-count', 1000)"
+            >{{ form_data.description|default:'' }}</textarea>
+            <div class="char-count"><span id="desc-count">0</span>/1000</div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="date">
+                <i class="fas fa-calendar" style="margin-right:5px"></i>Due Date
+            </label>
+            <input
+                type="date"
+                id="date"
+                name="date"
+                class="form-input"
+                value="{{ form_data.date|default:today }}"
+                style="color-scheme:dark"
+            >
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">
+                <i class="fas fa-signal" style="margin-right:5px"></i>Priority
+            </label>
+            <div class="priority-selector">
+                <div class="priority-option low">
+                    <input type="radio" name="priority" id="low" value="low" {% if form_data.priority == 'low' %}checked{% endif %}>
+                    <label class="priority-label" for="low">
+                        <i class="fas fa-arrow-down" style="color:var(--green)"></i>
+                        Low
+                    </label>
+                </div>
+                <div class="priority-option medium">
+                    <input type="radio" name="priority" id="medium" value="medium" checked {% if form_data.priority == 'high' or form_data.priority == 'low' %}checked="false"{% endif %}>
+                    <label class="priority-label" for="medium">
+                        <i class="fas fa-minus" style="color:var(--accent2)"></i>
+                        Medium
+                    </label>
+                </div>
+                <div class="priority-option high">
+                    <input type="radio" name="priority" id="high" value="high" {% if form_data.priority == 'high' %}checked{% endif %}>
+                    <label class="priority-label" for="high">
+                        <i class="fas fa-arrow-up" style="color:var(--red)"></i>
+                        High
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-primary">
+                <i class="fas fa-plus"></i> Add Task
+            </button>
+            <a href="{% url 'task_list' %}" class="btn-secondary">
+                <i class="fas fa-xmark"></i> Cancel
+            </a>
+        </div>
+    </form>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function updateChar(el, countId, max) {
+    document.getElementById(countId).textContent = el.value.length;
+}
+// Init counts
+document.addEventListener('DOMContentLoaded', () => {
+    updateChar(document.getElementById('title'), 'title-count', 200);
+    updateChar(document.getElementById('description'), 'desc-count', 1000);
+});
+</script>
+{% endblock %}

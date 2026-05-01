@@ -1,0 +1,243 @@
+{% extends 'tasks/base.html' %}
+{% block title %}Dashboard — Planr{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block page_sub %}Here's your productivity overview{% endblock %}
+
+{% block extra_css %}
+<style>
+    .progress-section {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 24px;
+        margin-bottom: 28px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .progress-section::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, var(--accent), var(--cyan));
+    }
+
+    .progress-header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        margin-bottom: 18px;
+    }
+
+    .progress-pct {
+        font-family: 'Syne', sans-serif;
+        font-size: 42px;
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--accent2), var(--cyan));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        line-height: 1;
+    }
+
+    .progress-subtitle {
+        font-size: 13px;
+        color: var(--text3);
+        margin-bottom: 6px;
+    }
+
+    .progress-nums {
+        font-size: 22px;
+        font-family: 'Syne', sans-serif;
+        font-weight: 700;
+        color: var(--text);
+    }
+
+    .two-col {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    @media (max-width: 860px) {
+        .two-col { grid-template-columns: 1fr; }
+    }
+
+    .today-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+
+    .dot {
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        background: var(--cyan);
+        box-shadow: 0 0 8px var(--cyan);
+        flex-shrink: 0;
+    }
+
+    .ring-chart {
+        width: 80px; height: 80px;
+        position: relative;
+    }
+
+    .ring-chart svg {
+        transform: rotate(-90deg);
+    }
+
+    .ring-bg { fill: none; stroke: var(--surface3); stroke-width: 8; }
+    .ring-fill { fill: none; stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 1s ease; }
+
+    .ring-text {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Syne', sans-serif;
+        font-size: 16px;
+        font-weight: 800;
+        color: var(--text);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Stats Grid -->
+<div class="stats-grid">
+    <div class="stat-card c1 animate-in">
+        <div class="stat-icon"><i class="fas fa-layer-group"></i></div>
+        <div class="stat-value">{{ total }}</div>
+        <div class="stat-label">Total Tasks</div>
+    </div>
+    <div class="stat-card c2 animate-in">
+        <div class="stat-icon"><i class="fas fa-circle-check"></i></div>
+        <div class="stat-value">{{ completed }}</div>
+        <div class="stat-label">Completed</div>
+    </div>
+    <div class="stat-card c3 animate-in">
+        <div class="stat-icon"><i class="fas fa-clock"></i></div>
+        <div class="stat-value">{{ upcoming }}</div>
+        <div class="stat-label">Upcoming</div>
+    </div>
+    <div class="stat-card c4 animate-in">
+        <div class="stat-icon"><i class="fas fa-triangle-exclamation"></i></div>
+        <div class="stat-value">{{ overdue }}</div>
+        <div class="stat-label">Overdue</div>
+    </div>
+</div>
+
+<!-- Progress Section -->
+<div class="progress-section animate-in">
+    <div class="progress-header">
+        <div>
+            <div class="progress-subtitle">Overall Completion</div>
+            <div class="progress-nums">{{ completed }} of {{ total }} tasks done</div>
+        </div>
+        <div class="progress-pct" id="pct-display">{{ progress }}%</div>
+    </div>
+    <div class="progress-track">
+        <div class="progress-fill" data-width="{{ progress }}" style="width:0%"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:10px;">
+        <span style="font-size:11px;color:var(--text3)">0 tasks</span>
+        <span style="font-size:11px;color:var(--text3)">{{ total }} tasks</span>
+    </div>
+</div>
+
+<!-- Two Column: Today + Recent -->
+<div class="two-col">
+    <!-- Today's Tasks -->
+    <div>
+        <div class="section-header">
+            <div class="today-header">
+                <div class="dot"></div>
+                <span class="section-title">Today's Tasks</span>
+            </div>
+            <a href="{% url 'task_list' %}?filter=today" class="section-link">View all <i class="fas fa-arrow-right" style="font-size:10px"></i></a>
+        </div>
+        {% if today_tasks %}
+            {% for task in today_tasks %}
+            <div class="task-item priority-{{ task.priority }} {% if task.completed %}completed-task{% endif %}">
+                <form method="post" action="{% url 'toggle_task' task.id %}" class="task-checkbox-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{% url 'dashboard' %}">
+                    <input type="checkbox" class="task-checkbox" {% if task.completed %}checked{% endif %} onchange="this.form.submit()">
+                </form>
+                <div class="task-body">
+                    <div class="task-title">{{ task.title }}</div>
+                    <div class="task-meta">
+                        <span class="badge badge-{{ task.priority }}">{{ task.priority }}</span>
+                    </div>
+                </div>
+                <div class="task-actions">
+                    <form method="post" action="{% url 'delete_task' task.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{% url 'dashboard' %}">
+                        <button type="submit" class="btn-icon danger" title="Delete" onclick="return confirm('Delete this task?')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="card" style="text-align:center;padding:32px">
+                <i class="fas fa-sun" style="color:var(--cyan);font-size:28px;margin-bottom:12px;display:block"></i>
+                <p style="font-size:13px;color:var(--text3)">No tasks for today.<br>Enjoy your clear schedule!</p>
+                <a href="{% url 'add_task' %}" style="display:inline-flex;align-items:center;gap:6px;margin-top:16px;font-size:13px;color:var(--accent2);text-decoration:none;font-weight:500">
+                    <i class="fas fa-plus"></i> Add a task
+                </a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Recent Activity -->
+    <div>
+        <div class="section-header">
+            <span class="section-title">Recent Tasks</span>
+            <a href="{% url 'task_list' %}" class="section-link">All tasks <i class="fas fa-arrow-right" style="font-size:10px"></i></a>
+        </div>
+        {% if recent_tasks %}
+            {% for task in recent_tasks %}
+            <div class="task-item priority-{{ task.priority }} {% if task.completed %}completed-task{% endif %}">
+                <form method="post" action="{% url 'toggle_task' task.id %}" class="task-checkbox-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{% url 'dashboard' %}">
+                    <input type="checkbox" class="task-checkbox" {% if task.completed %}checked{% endif %} onchange="this.form.submit()">
+                </form>
+                <div class="task-body">
+                    <div class="task-title">{{ task.title }}</div>
+                    <div class="task-meta">
+                        <span class="task-meta-item"><i class="fas fa-calendar-days"></i> {{ task.date }}</span>
+                        <span class="badge badge-{{ task.priority }}">{{ task.priority }}</span>
+                        {% if task.is_overdue %}<span class="badge badge-overdue">Overdue</span>{% endif %}
+                    </div>
+                </div>
+                <div class="task-actions">
+                    <form method="post" action="{% url 'delete_task' task.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{% url 'dashboard' %}">
+                        <button type="submit" class="btn-icon danger" onclick="return confirm('Delete?')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="card" style="text-align:center;padding:32px">
+                <i class="fas fa-inbox" style="color:var(--text3);font-size:28px;margin-bottom:12px;display:block"></i>
+                <p style="font-size:13px;color:var(--text3)">No tasks yet. Start adding!</p>
+                <a href="{% url 'add_task' %}" class="btn-primary" style="margin-top:16px;font-size:13px">
+                    <i class="fas fa-plus"></i> Add Task
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,246 @@
+{% extends 'tasks/base.html' %}
+{% block title %}Profile — Planr{% endblock %}
+{% block page_title %}Profile{% endblock %}
+{% block page_sub %}Your planner overview{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-header {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 32px;
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        margin-bottom: 24px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .profile-header::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--accent), var(--cyan));
+    }
+
+    .profile-avatar-big {
+        width: 80px; height: 80px;
+        background: linear-gradient(135deg, var(--accent), var(--cyan));
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-family: 'Syne', sans-serif;
+        font-size: 30px;
+        font-weight: 800;
+        color: white;
+        flex-shrink: 0;
+        box-shadow: 0 0 32px rgba(124,106,255,0.3);
+    }
+
+    .profile-info h2 {
+        font-family: 'Syne', sans-serif;
+        font-size: 22px;
+        font-weight: 800;
+        margin-bottom: 4px;
+    }
+
+    .profile-info p {
+        font-size: 13px;
+        color: var(--text3);
+        margin-bottom: 12px;
+    }
+
+    .skill-tags {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .skill-tag {
+        padding: 4px 12px;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--text2);
+    }
+
+    .skill-tag.accent { background: rgba(124,106,255,0.1); border-color: rgba(124,106,255,0.3); color: var(--accent2); }
+
+    .about-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    @media (max-width: 700px) {
+        .about-grid { grid-template-columns: 1fr; }
+        .profile-header { flex-direction: column; text-align: center; }
+        .skill-tags { justify-content: center; }
+    }
+
+    .info-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 24px;
+    }
+
+    .info-card h3 {
+        font-family: 'Syne', sans-serif;
+        font-size: 15px;
+        font-weight: 700;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--text);
+    }
+
+    .info-card h3 i { color: var(--accent2); }
+
+    .info-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border);
+        font-size: 13px;
+    }
+
+    .info-row:last-child { border-bottom: none; }
+    .info-row .label { color: var(--text3); }
+    .info-row .value { color: var(--text); font-weight: 500; }
+
+    .ring-big {
+        width: 120px; height: 120px;
+        margin: 0 auto 16px;
+        position: relative;
+    }
+
+    .ring-big svg { transform: rotate(-90deg); }
+
+    .ring-big-text {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .ring-big-pct {
+        font-family: 'Syne', sans-serif;
+        font-size: 26px;
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--accent2), var(--cyan));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .ring-big-label {
+        font-size: 10px;
+        color: var(--text3);
+        text-align: center;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="profile-header animate-in">
+    <div class="profile-avatar-big">R</div>
+    <div class="profile-info">
+        <h2>Reyina</h2>
+        <p>MCA Student · AI & ML · Nagpur, India</p>
+        <div class="skill-tags">
+            <span class="skill-tag accent">Ethical Hacking</span>
+            <span class="skill-tag accent">AI/ML</span>
+            <span class="skill-tag">Kali Linux</span>
+            <span class="skill-tag">React</span>
+            <span class="skill-tag">Python</span>
+            <span class="skill-tag">SQL</span>
+        </div>
+    </div>
+</div>
+
+<div class="about-grid">
+    <!-- Progress ring -->
+    <div class="info-card animate-in" style="text-align:center">
+        <h3 style="justify-content:center"><i class="fas fa-chart-pie"></i> Completion Rate</h3>
+        <div class="ring-big">
+            <svg viewBox="0 0 120 120" width="120" height="120">
+                <circle class="ring-bg" cx="60" cy="60" r="50"></circle>
+                <circle
+                    class="ring-fill"
+                    cx="60" cy="60" r="50"
+                    stroke="url(#grad)"
+                    stroke-dasharray="314"
+                    stroke-dashoffset="{{ 314|add:0|floatformat:0 }}"
+                    id="main-ring"
+                    style="stroke-dashoffset: calc(314 - (314 * {{ progress }} / 100))"
+                ></circle>
+                <defs>
+                    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="#7c6aff"/>
+                        <stop offset="100%" stop-color="#38d9d9"/>
+                    </linearGradient>
+                </defs>
+            </svg>
+            <div class="ring-big-text">
+                <span class="ring-big-pct">{{ progress }}%</span>
+                <span class="ring-big-label">completed</span>
+            </div>
+        </div>
+        <div class="info-row">
+            <span class="label">Total Tasks</span>
+            <span class="value">{{ total }}</span>
+        </div>
+        <div class="info-row">
+            <span class="label">Completed</span>
+            <span class="value" style="color:var(--green)">{{ completed }}</span>
+        </div>
+        <div class="info-row">
+            <span class="label">Remaining</span>
+            <span class="value" style="color:var(--accent2)">{{ remaining }}</span>
+        </div>
+    </div>
+
+    <!-- App info -->
+    <div class="info-card animate-in">
+        <h3><i class="fas fa-circle-info"></i> About Planr</h3>
+        <p style="font-size:13px;color:var(--text3);line-height:1.7;margin-bottom:16px">
+            Planr is a minimal yet powerful daily task manager built with Django. Stay on top of your goals with smart filtering, priority tracking, and a clean dashboard that shows exactly where you stand.
+        </p>
+        <div class="info-row">
+            <span class="label">Framework</span>
+            <span class="value">Django (Python)</span>
+        </div>
+        <div class="info-row">
+            <span class="label">Database</span>
+            <span class="value">SQLite</span>
+        </div>
+        <div class="info-row">
+            <span class="label">Architecture</span>
+            <span class="value">MVT Pattern</span>
+        </div>
+        <div class="info-row">
+            <span class="label">Version</span>
+            <span class="value">1.0.0</span>
+        </div>
+
+        <div style="margin-top:20px;display:flex;gap:10px">
+            <a href="{% url 'add_task' %}" class="btn-primary" style="flex:1;justify-content:center;padding:11px">
+                <i class="fas fa-plus"></i> Add Task
+            </a>
+            <a href="{% url 'dashboard' %}" class="btn-secondary" style="flex:1;justify-content:center;padding:11px">
+                <i class="fas fa-house"></i> Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
