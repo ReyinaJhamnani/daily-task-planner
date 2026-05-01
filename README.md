@@ -36,7 +36,7 @@ A web-based task management system built using Django to help users organize and
 ## ✅ Completed Tasks View
 <img width="1909" height="829" alt="image" src="https://github.com/user-attachments/assets/4cd45e07-7bb2-4b18-b925-641119045b26" />
 
-
+## 👤 User Profile Overview
 <img width="1916" height="832" alt="image" src="https://github.com/user-attachments/assets/8359ccf3-739e-4b0b-a493-693870fe3abd" />
 
 ## 📌 Use Case
