@@ -30,13 +30,13 @@ A web-based task management system built using Django to help users organize and
 ## 📊 Dashboard Overview
 <img width="1919" height="832" alt="image" src="https://github.com/user-attachments/assets/d4e9a0c5-7919-4d22-a159-8ec131e46ec8" />
 
-## 📋 Task Management Interface
+## 📅 Upcoming Tasks Tracking
 <img width="1917" height="832" alt="image" src="https://github.com/user-attachments/assets/4b360efc-bec9-421a-9551-2e55f6675e7e" />
 
 ## ✅ Completed Tasks View
 <img width="1909" height="829" alt="image" src="https://github.com/user-attachments/assets/4cd45e07-7bb2-4b18-b925-641119045b26" />
 
-## 📅 Upcoming Tasks Tracking
+
 <img width="1916" height="832" alt="image" src="https://github.com/user-attachments/assets/8359ccf3-739e-4b0b-a493-693870fe3abd" />
 
 ## 📌 Use Case
